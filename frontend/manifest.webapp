@@ -1,0 +1,26 @@
+{
+  "name": "sqet",
+  "id": "sqet",
+  "lang": "en-US",
+  "description": "A Virtual Pet",
+  "launch_path": "/index.html",
+  "type": "web",
+  "icons": [
+      {
+	"src": "icons/icon60x60.png",
+	"type": "image/png",
+	"sizes": "60x60"
+      },
+      {
+	"src": "icons/icon16x16.png",
+        "type": "image/png",
+        "sizes": "16x16"
+        }
+  ],
+  "orientation": "portrait",
+  "version": "1.0",
+  "developer": {
+  	"name": "Tekk",
+    	"url": "http://tekk.in"
+  }
+}

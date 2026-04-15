@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1">
+
+    <title>KaiPet</title>
+
+    <style>
+body {
+	display: flex;
+	flex-direction: column;
+}
+
+#game {
+	margin: auto;
+	margin-bottom: 0;
+	padding: 0;
+}
+.softkey-menu {
+	margin: auto;
+	padding: 0;
+	height: 16px;
+	width: 240px;
+	display: flex;
+}
+.softkey:hover {
+	cursor: pointer;
+}
+
+#softkey-left {
+	flex: 0 1 auto;
+}
+#softkey-center {
+	flex: 1 1 auto;
+	text-align: center;
+}
+#softkey-right {
+	flex: 0 1 auto;
+}
+
+    </style>
+
+    <!-- Inline scripts are forbidden in Firefox OS apps (CSP restrictions),
+         so we use a script file. -->
+    <script src="app.js" defer></script>
+
+  </head>
+
+  <body>
+	<canvas id="game" width=240px height=304px></canvas>
+	<footer class="softkey-menu">
+	<span class="softkey" id="softkey-left">Feed</span>
+	<span class="softkey" id="softkey-center">Menu</span>
+	<span class="softkey" id="softkey-right">Train</span>
+	</footer>
+  </body>
+</html>
