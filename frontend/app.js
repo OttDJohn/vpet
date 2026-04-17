@@ -1,8 +1,8 @@
 let images = {};
 
 async function load() {
-	let i = ["cornelius", "meatfull", "meatempty", "barbelfull", "barbelempty"]
-	let p = []
+	let i = ["cornelius", "meatfull", "meatempty", "barbelfull", "barbelempty", "grave"];
+	let p = [];
 	i.forEach(function(s) {
 			p.push(new Promise(resolve => {
 				images[s] = new Image();
@@ -20,6 +20,7 @@ let pet = {
 	"age": 0,
 	"right": false,
 	"x": 0,
+	dead: false
 };
 
 let stor = null;
@@ -63,7 +64,7 @@ function drawStatus() {
 function animTick(ts) {
 	c.clearRect(0, 0, w.width, w.height);
 	let df = pet.right ? 1 : -1;
-	if (ts - laf > 100) {
+	if (!pet.dead && ts - laf > 100) {
 		laf = ts;
 		
 		if (!pet.right && pet.x <= 0 || pet.right && pet.x >= w.clientWidth - 51 || roll() < 3) {
@@ -84,6 +85,11 @@ function animTick(ts) {
 }
 
 function simTick() {
+	if (pet.dead || pet.food <= -5 || pet.train <= -5) {
+		pet.dead = true;
+		pet.i = images.grave;
+		return;
+	}
 	if (roll() < 5) {
 		pet.food--;
 	}
@@ -100,11 +106,11 @@ function clamp(min, mid, max) {
 function keyDown(e) {
 	switch (e.key) {
 		case 'SoftLeft':
-		pet.food = clamp(1, pet.food + 1, 5)
+		if (!pet.dead) { pet.food = clamp(1, pet.food + 1, 5); }
 		break;
 
 		case 'SoftRight':
-		pet.train = clamp(1, pet.train + 1, 5)
+		if (!pet.dead) { pet.train = clamp(1, pet.train + 1, 5);}
 		break;
 	}
 }
@@ -118,7 +124,7 @@ window.addEventListener("load", function() {
 	if (save !== null) {
 		pet = save;
 	}
-	setInterval(simTick, 60 * 1000);
+	setInterval(simTick, 60 * 10);
 	load().then(_ => {
 		pet.i = images.cornelius;
 		laf = document.timeline.currentTime;

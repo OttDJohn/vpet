@@ -1,0 +1,103 @@
+{
+  "id": "vpet",
+  "name": "VPet",
+  "short_name": "VPet",
+  "start_url": "/index.html",
+  "orientation": "natural",
+  "dir": "auto",
+  "type": "web",
+  "lang": "en-US",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#005665",
+  "description": "Discover, listen, and subscribe to podcasts from around the world for free. PodLP is designed specifically for KaiOS to be easy to use both online and offline.",
+  "categories": [
+    "news", "entertainment", "education"
+  ],
+  "icons": [{
+    "src": "icons/icon60x60.png",
+    "type": "image/png",
+    "sizes": "56x56"
+  }],
+  "b2g_features": {
+    "display": "Vpet",
+    "version": "0.0.1",
+    "subtitle": "Discover, listen, and subscribe to podcasts",
+    "type": "privileged",
+    "developer": {
+      "name": "Tekk",
+      "url": "http://tekk.in"
+    },
+    "priority": "high",
+    "cursor": false,
+    "fullscreen": false,
+    "origin": "podlp",
+    "userAgentInfo": "PodLP/3.5.1",
+    "chrome": {
+      "statusbar": "overlap"
+    },
+    "focus_color": "#005665",
+    "default_locale": "en-US",
+    "permissions": {
+      "audio-channel-content": {
+        "description": "To play podcast audio files."
+      },
+      "audio-channel-normal": {
+        "description": "To play podcast audio files."
+      },
+      "systemXHR": {
+        "description": "To download podcast audio files."
+      },
+      "worker-activity": {
+        "description": "To launch WebActivites."
+      },
+      "mobiledata": {
+        "description": "To use mobile data."
+      },
+      "wifidata": {
+        "description": "To use wifi data."
+      },
+      "desktop-notification": {
+        "description": "To display notifications."
+      },
+      "volumemanager": {
+        "description": "To control system volume."
+      },
+      "speaker-control": {
+        "description": "To force speaker output"
+      },
+      "feature-detection": {
+        "description": "To detect device capabilities."
+      },
+      "tcp-socket": {
+        "description": "To establish low-level network connections."
+      },
+      "device-storage:sdcard": {
+        "description": "To save episodes to the SD card.",
+        "access": "readwrite"
+      },
+      "alarms": {
+        "description": "To support sleep timer"
+      }
+    },
+    "serviceworker": {
+      "script_url": "sw.podlp.js"
+    },
+    "messages": [
+      "activity",
+      "alarm"
+    ],
+    "activities": {
+      "open-podlp": {
+        "filters": {
+          "type": [ "home", "podcast", "episode", "categories", "category", "store", "about", "settings" ],
+          "play": {
+            "value": [ true, false ],
+            "required": false
+          }
+        }
+      }
+    }
+  }
+}
+

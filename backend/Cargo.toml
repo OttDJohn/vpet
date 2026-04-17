@@ -1,0 +1,8 @@
+[package]
+name = "backend"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ohkami = { version = "0.24", features = ["rt_tokio"] }
+tokio  = { version = "1",    features = ["full"] }
