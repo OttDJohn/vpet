@@ -4,24 +4,46 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1">
 
-    <title>KaiPet</title>
+    <title>VPet</title>
 
     <style>
-body {
+html, body {
 	display: flex;
 	flex-direction: column;
+	height: 100%;
+	margin: 0;
 }
 
-#game {
+#sky {
+	margin: auto;
+	margin-bottom: 0;
+	width: 100%;
+	padding: 0;
+	flex: 2 1 auto;
+	background-image: radial-gradient(circle 4rem at bottom center, orange, darkorange, purple);
+}
+
+#field {
 	margin: auto;
 	margin-bottom: 0;
 	padding: 0;
+	width: 100%;
+	flex: 1 1 auto;
+	position: relative;
+	background-image: linear-gradient(to top, darkgreen, lightgreen);
 }
+
+#pet {
+	bottom: 0;
+	position: absolute;
+}
+
 .softkey-menu {
 	margin: auto;
 	padding: 0;
-	height: 16px;
-	width: 240px;
+	flex: 0 1 auto;
+	height: 2rem;
+	width: 100%;
 	display: flex;
 }
 .softkey:hover {
@@ -48,11 +70,18 @@ body {
   </head>
 
   <body>
-	<canvas id="game" width=230px height=290px></canvas>
+  	<div id="sky">
+  	<div id="meats"><img class="meat" src="images/meatfull.png"/><img class="meat" src="images/meatfull.png"/><img class="meat" src="images/meatfull.png"/><img class="meat" src="images/meatfull.png"/><img class="meat" src="images/meatfull.png"/></div>
+  	<div id="trains"><img class="train" src="images/trainfull.png"/><img class="train" src="images/trainfull.png"/><img class="train" src="images/trainfull.png"/><img class="train" src="images/trainfull.png"/><img class="train" src="images/trainfull.png"/></div>
+  	</div>
+  	<div id="field">
+  	<img id="pet" src="images/cornelius.png"/>
+  	</div>
 	<footer class="softkey-menu">
 	<span class="softkey" id="softkey-left">Feed</span>
 	<span class="softkey" id="softkey-center">Menu</span>
 	<span class="softkey" id="softkey-right">Train</span>
 	</footer>
+	</div>
   </body>
 </html>
