@@ -1,0 +1,20 @@
+A virtual pet, right now just for feature phones. We need a server backend
+because there's no way to consistently run a background process on there and
+send push notifications when something is up.
+
+So in your phone you've got a pet. The pet is from some species or another.
+It's got a couple of stats. Still nailing them down but definitely food and
+either training or fun. Maybe also some sort of stamina thing.
+
+For the most part you just feed and train your pet, but the 'gameplay' is
+exploration. You send your pet to a destination with a short, medium, or long
+duration. Short durations are for gathering resources. Long durations get
+decorations and other rewards. Medium is a mix.
+
+If your pet comes back with decorations, they can be used to decorate the
+habitat.
+
+If your pet ever hits -5 food or fun, it dies. This includes while on a trip.
+It can also die of old age.
+
+If your pet dies you can hatch a new egg from the ones you have available.
