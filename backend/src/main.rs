@@ -86,6 +86,36 @@ async fn get_pet(Context(dbenv): Context<'_, Arc<Env>>, Path(id): Path<&str>) ->
 	}
 }
 
+fn update_pet<F>(env: &Env, id: &str, cb: F) -> Result<Pet, Error> 
+	where F: Fn(&mut Pet) {
+	let mut wtx = env.write_txn().expect("Failed to open write transaction");
+	let pets: Database<Str, Str> = env.create_database(&mut wtx, Some("pets"))
+		.expect("Couldn't open pets db");
+	if let Ok(pet) = pets.get(&wtx, id) {
+		if let Some(ps)  = pet {
+			let mut p: Pet = serde_json::from_str(ps).unwrap();
+			cb(&mut p);
+			_ = pets.put(&mut wtx, id, &(serde_json::to_string(&p).unwrap()));
+			wtx.commit().expect("Failed to commit while updating pet");
+			Ok(p)
+		} else {
+			Err(Error { status_code: 404, message: String::from("Pet not found")})
+		}
+	} else {
+		Err(Error { status_code: 500, message: String::from("Failed to get from database")})
+	}
+}
+
+async fn train_pet(Context(dbenv): Context<'_, Arc<Env>>, Path(id): Path<&str>) -> Result<Json<WirePet>, Error> {
+	let u = Uuid::parse_str(id)?; // Make sure it's a valid uuid
+	update_pet(&(*dbenv), id, | p | { p.food = std::cmp::min(5, p.training + 1) }).map(|p| { Json(wire_of_pet(p))})
+}
+
+async fn feed_pet(Context(dbenv): Context<'_, Arc<Env>>, Path(id): Path<&str>) -> Result<Json<WirePet>, Error> {
+	let u = Uuid::parse_str(id)?; // Make sure it's a valid uuid
+	update_pet(&(*dbenv), id, | p | { p.food = std::cmp::min(5, p.food + 1) }).map(|p| { Json(wire_of_pet(p))})
+}
+
 fn now_s() -> u64 {
 	SystemTime::now().duration_since(UNIX_EPOCH).expect("Something bad happened with time").as_secs()
 }
@@ -111,7 +141,7 @@ fn tick_pet_thread(dbenv: Arc<Env>) {
 			panic!("Failed to open database for ticks");
 		}
 		wtx.commit().expect("Failed to commit pet ticks");
-		thread::sleep(Duration::from_millis(60 * 1000));
+		thread::sleep(Duration::from_secs(5));
 	}
 }
 	
@@ -132,5 +162,7 @@ async fn main() {
 	Ohkami::new((Context::new((*ENV).clone()),
 		concatcp!(API_PREFIX, "pet").POST(create_pet),
 		concatcp!(API_PREFIX, "pet/:id").GET(get_pet),
+		concatcp!(API_PREFIX, "pet/:id/feed").POST(feed_pet),
+		concatcp!(API_PREFIX, "pet/:id/train").POST(feed_pet),
 		)).howl("localhost:8080").await
 }
