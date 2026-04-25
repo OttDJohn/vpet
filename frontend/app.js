@@ -1,7 +1,7 @@
 let images = {};
 
 async function load() {
-	let i = ["cornelius", "corneliusright", "meatfull", "meatempty", "trainfull", "trainempty", "grave", "graveright"];
+	let i = ["squib", "squibright", "schmeat", "schmeatempty", "trainfull", "trainempty", "grave", "graveright"];
 	let p = [];
 	i.forEach(function(s) {
 			p.push(new Promise(resolve => {
@@ -33,13 +33,13 @@ function roll() {
 
 function flip() {
 		pet.right = !pet.right;
-		document.getElementById("pet").src = pet.right ? images.corneliusright.src : images.cornelius.src;
+		document.getElementById("pet").src = pet.right ? images.squibright.src : images.squib.src;
 }
 
 function drawStatus() {
 	let i=0;
 	document.querySelectorAll(".meat").forEach((e) =>
-		e.src = i++ < pet.food ? images.meatfull.src : images.meatempty.src
+		e.src = i++ < pet.food ? images.schmeat.src : images.schmeatempty.src
 	);
 	i = 0;
 	document.querySelectorAll(".train").forEach((e) =>
