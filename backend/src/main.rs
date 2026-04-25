@@ -1,6 +1,6 @@
 mod sim;
 
-use sim::pet::{Pet, PetType, tick};
+use sim::pet::{Pet, PetType};
 use std::fs::DirBuilder;
 use std::sync::{Arc, LazyLock};
 use std::thread;
@@ -55,7 +55,8 @@ impl From<uuid::Error> for Error {
 }
 
 fn wire_of_pet(p: Pet) -> WirePet {
-	WirePet {t: p.t, food: p.food, training: p.training, age: (now_s() - p.born) / (60 * 60 * 24) }
+	const DAYS_OF_SECONDS: u64 = 60 * 60 * 24;
+	WirePet {t: p.t, food: p.food, training: p.training, age: (now_s() - p.born) / (DAYS_OF_SECONDS) }
 }
 
 async fn create_pet(Context(dbenv): Context<'_, Arc<Env>>) -> Json<CreatePetResult> {
@@ -63,7 +64,8 @@ async fn create_pet(Context(dbenv): Context<'_, Arc<Env>>) -> Json<CreatePetResu
 	let mut wtx = dbenv.write_txn().expect("Failed to open write transaction");
 	let pets: Database<Str, Str> = dbenv.create_database(&mut wtx, Some("pets"))
 		.expect("Couldn't open pets db");
-	_ = pets.put(&mut wtx, &u.to_string(), &(serde_json::to_string(&Pet {t: PetType::Squid, food: 5, training: 5, metabolism: 80, discipline: 80, born: now_s(), alive: true}).unwrap()));
+	_ = pets.put(&mut wtx, &u.to_string(), &(serde_json::to_string(&Pet::new(now_s()))
+	    	.unwrap()));
 	wtx.commit().expect("Failed to commit new pet");
 
 	Json(CreatePetResult { id: u })
@@ -101,7 +103,7 @@ fn tick_pet_thread(dbenv: Arc<Env>) {
 					let rv = v.1;
 					let k = v.0;
 					let mut p: Pet = serde_json::from_str(rv).unwrap();
-					tick(&mut rng, &mut p);
+					p.tick(&mut rng);
 					unsafe {_ = ri.put_current(&k, &serde_json::to_string(&p).unwrap())};
 				}
 			}
@@ -116,6 +118,15 @@ fn tick_pet_thread(dbenv: Arc<Env>) {
 #[tokio::main]
 async fn main() {
 	DirBuilder::new().recursive(true).create("./petdb").expect("Unable to create db path");
+	/* Yes this is fucking horrific. Blame Rust.
+	 * To explain: we need the Env available on both the REST thread (to create, feed, etc.) and on the sim thread.
+	 * We can't share data between the threads because the Env isn't cloneable. We can't *not* share the data because
+	 * only one env is valid in the program. So we need to wrap it in an Automated Reference Count container (Arc).
+	 * The problem then is that Rust can't prove that the sim thread (running tick_pet_thread) will end before the main thread
+	 * which means that it has to be static. But if it's static then every call in initialization must be const (can be run at
+	 * compile time) which in this case it's not. So we have to wrap the Arc in a LazyLock, which isn't a lock, it's just lazy
+	 * evaluation. Meaning that all we create at runtime is the "lock" with a const-friendly lambda, which can be static.
+	 */
 	static ENV: LazyLock<Arc<Env>> = unsafe { std::sync::LazyLock::new(|| {Arc::new(EnvOpenOptions::new().max_dbs(8).open("./petdb").expect("Failed to open db"))}) };
 	thread::spawn(|| {tick_pet_thread((*ENV).clone())});
 	Ohkami::new((Context::new((*ENV).clone()),

@@ -20,14 +20,28 @@ pub struct Pet {
 	pub alive: bool,
 }
 
-pub fn tick(rng: &mut impl Rng, p: &mut Pet) {
-	if rng.random_range(0..100) < p.metabolism {
-		p.food -= 1;
+impl Pet {
+	pub fn new(now: u64) -> Pet {
+		Pet {
+			t: PetType::Squid,
+			born: now,
+			food: 5,
+			training: 5,
+			metabolism: 80,
+			discipline: 80,
+			alive: true
+		}
 	}
 
-	if rng.random_range(0..100) < p.discipline {
-		p.training -= 1;
-	}
+	pub fn tick(&mut self, rng: &mut impl Rng) {
+		if rng.random_range(0..100) < (100 - self.metabolism) {
+			self.food -= 1;
+		}
 
-	p.alive = (p.training > -5) && (p.food > -5);
+		if rng.random_range(0..100) < (100 - self.discipline) {
+			self.training -= 1;
+		}
+
+		self.alive = (self.training > -5) && (self.food > -5);
+	}
 }
