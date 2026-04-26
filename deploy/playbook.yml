@@ -1,0 +1,40 @@
+- name: Deploy Petite Expedition
+  hosts: hosts
+  tasks:
+    - name: Create Petite User
+      user:
+        name: 'petite'
+        password: '*'
+
+    - name: Copy public keys to server
+      copy:
+        owner: petite
+        src: pubkeys/
+        dest: /home/petite/pubkeys
+
+    - name: Add keys to authorized users.
+      ansible.posix.authorized_key:
+        user: petite
+        key: '{{ item }}'
+      with_file:
+        - pubkeys/danny.pub
+
+    - name: Create db directory if not already present
+      file:
+        path: /home/petite/petdb
+        owner: petite
+        state: directory
+
+    - name: Copy frontend to remote
+      copy:
+        src: ../frontend/
+        dest: /home/petite/frontend
+        owner: petite
+
+    - name: Copy the server binary
+      copy:
+        src: ../backend/target/debug/backend
+        dest: /home/petite/backend
+        mode: 0500
+        owner: petite
+
