@@ -5,6 +5,7 @@
       user:
         name: 'petite'
         password: '*'
+      when: ansible_user_id == 'root'
 
     - name: Copy public keys to server
       copy:
@@ -18,6 +19,7 @@
         key: '{{ item }}'
       with_file:
         - pubkeys/danny.pub
+        - pubkeys/jd.pub
 
     - name: Create db directory if not already present
       file:
@@ -37,4 +39,3 @@
         dest: /home/petite/backend
         mode: 0500
         owner: petite
-

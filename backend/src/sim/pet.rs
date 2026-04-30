@@ -1,6 +1,10 @@
+use std::time::Duration;
+
 use rand::prelude::*;
 
 use serde::{Serialize, Deserialize};
+
+use crate::now_s;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum PetType {
@@ -34,12 +38,16 @@ impl Pet {
 	}
 
 	pub fn tick(&mut self, rng: &mut impl Rng) {
+	        // Don't tick if we're still in an egg.
+		if now_s() - self.born < Duration::from_mins(5).as_secs() {
+		    return;
+		}
 		if rng.random_range(0..100) < (100 - self.metabolism) {
-			self.food -= 1;
+			self.food = std::cmp::max(self.food - 1, -5);
 		}
 
 		if rng.random_range(0..100) < (100 - self.discipline) {
-			self.training -= 1;
+			self.training = std::cmp::max(self.training - 1, -5);
 		}
 
 		self.alive = (self.training > -5) && (self.food > -5);

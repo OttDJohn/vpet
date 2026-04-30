@@ -14,7 +14,7 @@ use heed::types::*;
 use ohkami::prelude::*;
 use ohkami::{Ohkami, Route};
 use ohkami::claw::{Json, Path};
-use ohkami::fang::Context;
+use ohkami::fang::{Context, Cors};
 use ohkami::serde::{Serialize};
 
 use serde_json;
@@ -34,7 +34,8 @@ struct WirePet {
 	t: PetType,
 	food: i8,
 	training: i8,
-	age: u64
+	age: u64,
+	egg: bool
 }
 
 #[derive(Serialize)]
@@ -56,7 +57,8 @@ impl From<uuid::Error> for Error {
 
 fn wire_of_pet(p: Pet) -> WirePet {
 	const DAYS_OF_SECONDS: u64 = 60 * 60 * 24;
-	WirePet {t: p.t, food: p.food, training: p.training, age: (now_s() - p.born) / (DAYS_OF_SECONDS) }
+	let age = now_s() - p.born;
+	WirePet {t: p.t, food: p.food, training: p.training, age: age / (DAYS_OF_SECONDS), egg: age < (Duration::from_mins(5).as_secs()) }
 }
 
 async fn create_pet(Context(dbenv): Context<'_, Arc<Env>>) -> Json<CreatePetResult> {
@@ -94,7 +96,9 @@ fn update_pet<F>(env: &Env, id: &str, cb: F) -> Result<Pet, Error>
 	if let Ok(pet) = pets.get(&wtx, id) {
 		if let Some(ps)  = pet {
 			let mut p: Pet = serde_json::from_str(ps).unwrap();
+			println!("Updating pet! {:?}", p);
 			cb(&mut p);
+			println!("Updated pet! {:?}", p);
 			_ = pets.put(&mut wtx, id, &(serde_json::to_string(&p).unwrap()));
 			wtx.commit().expect("Failed to commit while updating pet");
 			Ok(p)
@@ -108,7 +112,7 @@ fn update_pet<F>(env: &Env, id: &str, cb: F) -> Result<Pet, Error>
 
 async fn train_pet(Context(dbenv): Context<'_, Arc<Env>>, Path(id): Path<&str>) -> Result<Json<WirePet>, Error> {
 	let u = Uuid::parse_str(id)?; // Make sure it's a valid uuid
-	update_pet(&(*dbenv), id, | p | { p.food = std::cmp::min(5, p.training + 1) }).map(|p| { Json(wire_of_pet(p))})
+	update_pet(&(*dbenv), id, | p | { p.training = std::cmp::min(5, p.training + 1) }).map(|p| { Json(wire_of_pet(p))})
 }
 
 async fn feed_pet(Context(dbenv): Context<'_, Arc<Env>>, Path(id): Path<&str>) -> Result<Json<WirePet>, Error> {
@@ -116,7 +120,7 @@ async fn feed_pet(Context(dbenv): Context<'_, Arc<Env>>, Path(id): Path<&str>) -
 	update_pet(&(*dbenv), id, | p | { p.food = std::cmp::min(5, p.food + 1) }).map(|p| { Json(wire_of_pet(p))})
 }
 
-fn now_s() -> u64 {
+pub fn now_s() -> u64 {
 	SystemTime::now().duration_since(UNIX_EPOCH).expect("Something bad happened with time").as_secs()
 }
 
@@ -160,9 +164,10 @@ async fn main() {
 	static ENV: LazyLock<Arc<Env>> = unsafe { std::sync::LazyLock::new(|| {Arc::new(EnvOpenOptions::new().max_dbs(8).open("./petdb").expect("Failed to open db"))}) };
 	thread::spawn(|| {tick_pet_thread((*ENV).clone())});
 	Ohkami::new((Context::new((*ENV).clone()),
+	        Cors::new("*"),
 		concatcp!(API_PREFIX, "pet").POST(create_pet),
 		concatcp!(API_PREFIX, "pet/:id").GET(get_pet),
 		concatcp!(API_PREFIX, "pet/:id/feed").POST(feed_pet),
-		concatcp!(API_PREFIX, "pet/:id/train").POST(feed_pet),
+		concatcp!(API_PREFIX, "pet/:id/train").POST(train_pet),
 		)).howl("localhost:8080").await
 }
