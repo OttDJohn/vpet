@@ -35,7 +35,8 @@ struct WirePet {
 	food: i8,
 	training: i8,
 	age: u64,
-	egg: bool
+	egg: bool,
+	alive: bool
 }
 
 #[derive(Serialize)]
@@ -58,7 +59,7 @@ impl From<uuid::Error> for Error {
 fn wire_of_pet(p: Pet) -> WirePet {
 	const DAYS_OF_SECONDS: u64 = 60 * 60 * 24;
 	let age = now_s() - p.born;
-	WirePet {t: p.t, food: p.food, training: p.training, age: age / (DAYS_OF_SECONDS), egg: age < (Duration::from_mins(5).as_secs()) }
+	WirePet {t: p.t, food: p.food, training: p.training, age: age / (DAYS_OF_SECONDS), egg: age < (Duration::from_mins(5).as_secs()), alive: p.alive }
 }
 
 async fn create_pet(Context(dbenv): Context<'_, Arc<Env>>) -> Json<CreatePetResult> {
@@ -77,7 +78,9 @@ async fn get_pet(Context(dbenv): Context<'_, Arc<Env>>, Path(id): Path<&str>) ->
 	let _u = Uuid::parse_str(id)?; // Make sure it's a valid uuid
 
 	let mut rtx = dbenv.read_txn().expect("Failed to open read transaction");
-	let pets: Database<Str, Str> = dbenv.open_database(&mut rtx, Some("pets")).or_else(|_x| Err(Error {status_code: 404, message: String::from("Pet not found!")}))?.expect("Broken database when calling get_pet");
+	let pets: Database<Str, Str> = dbenv.open_database(&mut rtx, Some("pets"))
+	    .or_else(|_x| Err(Error {status_code: 404, message: String::from("Pet not found!")}))?
+	        .expect("Broken database when calling get_pet");
 	if let Ok(pet) = pets.get(&rtx, id) {
 		match pet {
 			Some(pet) => Ok(Json(wire_of_pet(serde_json::from_str(pet).unwrap()))),
