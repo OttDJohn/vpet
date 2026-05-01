@@ -74,6 +74,8 @@ function animTick(ts) {
 		if (roll() < 30) {
 		    pet.x += 5 * df;
 		}
+	    } else {
+		p.src = images.egg.src;
 	    }
 	    p.style.left = pet.x + "px";
 	} else {
@@ -155,7 +157,6 @@ window.addEventListener("load", function() {
 	    }
 	};
 	document.addEventListener('keydown', keyDown);
-	document.getElementById('pet').src = pet.egg ? images.egg.src : images.brrkah.src;
 
 	window.requestAnimationFrame(animTick);
 	setInterval(simTick, 60 * 1000);
