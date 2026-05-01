@@ -7,12 +7,6 @@
         password: '*'
       when: ansible_user_id == 'root'
 
-    - name: Copy public keys to server
-      copy:
-        owner: petite
-        src: pubkeys/
-        dest: /home/petite/pubkeys
-
     - name: Add keys to authorized users.
       ansible.posix.authorized_key:
         user: petite
@@ -20,6 +14,7 @@
       with_file:
         - pubkeys/danny.pub
         - pubkeys/jd.pub
+        - pubkeys/desktop.pub
 
     - name: Create db directory if not already present
       file:
@@ -30,8 +25,8 @@
     - name: Copy frontend to remote
       copy:
         src: ../frontend/
-        dest: /home/petite/frontend
-        owner: petite
+        dest: /usr/share/nginx/html/
+        owner: nginx
 
     - name: Copy the server binary
       copy:
@@ -39,3 +34,33 @@
         dest: /home/petite/backend
         mode: 0500
         owner: petite
+    - name: Copy petite.service
+      copy:
+        src: petite.service
+        dest: /etc/systemd/system/petite.service
+
+    - name: Enable backend
+      systemd_service:
+        name: petite
+        enabled: true
+        state: reloaded
+
+    - name: Install required packages
+      package:
+        name:
+          - nginx
+        state: latest
+    - name: Copy nginx config
+      copy:
+        src: nginx.conf
+        dest: /etc/nginx/nginx.conf
+    - name: Copy site config
+      copy:
+        src: petite.conf
+        dest: /etc/nginx/default.d/petite.conf
+
+    - name: Enable nginx
+      systemd_service:
+        name: nginx
+        enabled: true
+        state: reloaded
