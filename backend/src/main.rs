@@ -114,12 +114,12 @@ fn update_pet<F>(env: &Env, id: &str, cb: F) -> Result<Pet, Error>
 }
 
 async fn train_pet(Context(dbenv): Context<'_, Arc<Env>>, Path(id): Path<&str>) -> Result<Json<WirePet>, Error> {
-	let u = Uuid::parse_str(id)?; // Make sure it's a valid uuid
+	let _u = Uuid::parse_str(id)?; // Make sure it's a valid uuid
 	update_pet(&(*dbenv), id, | p | { p.training = std::cmp::min(5, p.training + 1) }).map(|p| { Json(wire_of_pet(p))})
 }
 
 async fn feed_pet(Context(dbenv): Context<'_, Arc<Env>>, Path(id): Path<&str>) -> Result<Json<WirePet>, Error> {
-	let u = Uuid::parse_str(id)?; // Make sure it's a valid uuid
+	let _u = Uuid::parse_str(id)?; // Make sure it's a valid uuid
 	update_pet(&(*dbenv), id, | p | { p.food = std::cmp::min(5, p.food + 1) }).map(|p| { Json(wire_of_pet(p))})
 }
 
