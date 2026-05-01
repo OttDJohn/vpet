@@ -15,6 +15,14 @@
         - pubkeys/danny.pub
         - pubkeys/jd.pub
         - pubkeys/desktop.pub
+    - name: Add keys to authorized users.
+      ansible.posix.authorized_key:
+        user: root
+        key: '{{ item }}'
+      with_file:
+        - pubkeys/danny.pub
+        - pubkeys/jd.pub
+        - pubkeys/desktop.pub
 
     - name: Create db directory if not already present
       file:
@@ -43,7 +51,7 @@
       systemd_service:
         name: petite
         enabled: true
-        state: reloaded
+        state: restarted
 
     - name: Install required packages
       package:
