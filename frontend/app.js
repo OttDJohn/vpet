@@ -1,5 +1,5 @@
 let images = {};
-let apibase = "http://petite-expedition.com/";
+let apibase = "http://petite-expedition.com/api/v1";
 
 async function load() {
 	let i = ["squib", "squibright", "brrkah", "brrkahright", "schmeat", "schmeatempty", "trainfull", "trainempty", "grave", "graveright", "egg"];
@@ -11,8 +11,8 @@ async function load() {
 				images[s].src = "images/" + s + ".png";
 			}));
 	});
-	if (id === null || !(await fetch(apibase + "/api/v1/pet/" + id)).ok) {
-		id = (await (await fetch(apibase + "/api/v1/pet", {method: "POST"})).json()).id;
+	if (id === null || !(await fetch(apibase + "/pet/" + id)).ok) {
+		id = (await (await fetch(apibase + "/pet", {method: "POST"})).json()).id;
 	}
 	if (id !== null) {
 		stor.setItem("pet", id)
@@ -85,7 +85,7 @@ async function update_overlap(o1, o2) {
 }
 
 async function simTick() {
-	let r = await fetch(apibase + "/api/v1/pet/" + id);
+	let r = await fetch(apibase + "/pet/" + id);
 	update_overlap(await r.json(), pet);
 
 	/*if (pet.dead || pet.food <= -5 || pet.train <= -5) {
@@ -120,11 +120,11 @@ function keyDown(e) {
 }
 
 async function sendFeed() {
-	return fetch(apibase + "/api/v1/pet/" + id + "/feed", {method: "POST"});
+	return fetch(apibase + "/pet/" + id + "/feed", {method: "POST"});
 }
 
 async function sendTrain() {
-	return fetch(apibase + "/api/v1/pet/" + id + "/train", {method: "POST"});
+	return fetch(apibase + "/pet/" + id + "/train", {method: "POST"});
 }
 
 window.addEventListener("load", function() {
