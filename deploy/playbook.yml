@@ -31,10 +31,12 @@
         state: directory
 
     - name: Copy frontend to remote
-      copy:
+      ansible.posix.synchronize:
         src: ../frontend/
         dest: /usr/share/nginx/html/
-        owner: nginx
+        owner: false
+      tags:
+        - frontend
 
     - name: Copy the server binary
       copy:
