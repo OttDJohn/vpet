@@ -39,7 +39,7 @@ impl Pet {
 
 	pub fn tick(&mut self, rng: &mut impl Rng) {
 	        // Don't tick if we're still in an egg.
-		if now_s() - self.born < Duration::from_mins(5).as_secs() {
+		if now_s() - self.born < Duration::from_mins(1).as_secs() {
 		    return;
 		}
 		if rng.random_range(0..100) < (100 - self.metabolism) {
