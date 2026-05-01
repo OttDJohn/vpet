@@ -58,11 +58,11 @@ function drawStatus() {
 
 function animTick(ts) {
     let df = pet.right ? 1 : -1;
-    if (pet.alive) {
-	if (ts - laf > 100) {
-	    laf = ts;
-	    let w = document.getElementById("field");
-	    let p = document.getElementById("pet");
+    if (ts - laf > 100) {
+	laf = ts;
+	let w = document.getElementById("field");
+	let p = document.getElementById("pet");
+	if (pet.alive) {
 	    if (!pet.egg) {
 		if (pet.last_egg) {
 		    p.src = images.brrkah;
@@ -76,10 +76,12 @@ function animTick(ts) {
 		}
 	    }
 	    p.style.left = pet.x + "px";
+	} else {
+	    p.src = pet.right ? images.graveright.src : images.grave.src;
 	}
 	pet.last_egg = pet.egg;
-	window.requestAnimationFrame(animTick);
     }
+    window.requestAnimationFrame(animTick);
 }
 
 async function update_overlap(o1, o2) {
