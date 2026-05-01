@@ -29,7 +29,7 @@ let pet = {
     "age": 0,
     "right": false,
     "x": 0,
-    alive: false
+    "alive": true
 };
 
 let stor = null;
@@ -65,7 +65,7 @@ function animTick(ts) {
 	if (pet.alive) {
 	    if (!pet.egg) {
 		if (pet.last_egg) {
-		    p.src = images.brrkah;
+		    p.src = images.brrkah.src;
 		}
 		if (!pet.right && pet.x <= 0 || pet.right && pet.x >= field.clientWidth - 51 || roll() < 3) {
 		    flip();
@@ -91,8 +91,8 @@ async function update_overlap(o1, o2) {
 }
 
 async function simTick() {
-    let r = await fetch(apibase + "/pet/" + id);
-    update_overlap(await r.json(), pet);
+    let r = await (await fetch(apibase + "/pet/" + id)).json();
+    update_overlap(r, pet);
 
     /*if (pet.alive || pet.food <= -5 || pet.train <= -5) {
       pet.alive = true;
