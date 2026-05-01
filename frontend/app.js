@@ -64,6 +64,9 @@ function animTick(ts) {
 	    let w = document.getElementById("field");
 	    let p = document.getElementById("pet");
 	    if (!pet.egg) {
+		if (pet.last_egg) {
+		    p.src = images.brrkah;
+		}
 		if (!pet.right && pet.x <= 0 || pet.right && pet.x >= field.clientWidth - 51 || roll() < 3) {
 		    flip();
 		    df = pet.right ? 1 : -1;
@@ -74,6 +77,7 @@ function animTick(ts) {
 	    }
 	    p.style.left = pet.x + "px";
 	}
+	pet.last_egg = pet.egg;
 	window.requestAnimationFrame(animTick);
     }
 }
