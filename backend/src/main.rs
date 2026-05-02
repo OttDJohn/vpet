@@ -1,5 +1,6 @@
 mod sim;
 
+use std::cmp::{min, max};
 use sim::pet::{Pet, PetType};
 use std::fs::DirBuilder;
 use std::sync::{Arc, LazyLock};
@@ -59,7 +60,7 @@ impl From<uuid::Error> for Error {
 fn wire_of_pet(p: Pet) -> WirePet {
 	const DAYS_OF_SECONDS: u64 = 60 * 60 * 24;
 	let age = now_s() - p.born;
-	WirePet {t: p.t, food: p.food, training: p.training, age: age / (DAYS_OF_SECONDS), egg: age < (Duration::from_mins(5).as_secs()), alive: p.alive }
+	WirePet {t: p.t, food: p.food, training: p.training, age: age / (DAYS_OF_SECONDS), egg: p.is_egg(), alive: p.alive }
 }
 
 async fn create_pet(Context(dbenv): Context<'_, Arc<Env>>) -> Json<CreatePetResult> {
@@ -77,14 +78,21 @@ async fn create_pet(Context(dbenv): Context<'_, Arc<Env>>) -> Json<CreatePetResu
 async fn get_pet(Context(dbenv): Context<'_, Arc<Env>>, Path(id): Path<&str>) -> Result<Json<WirePet>, Error> {
 	let _u = Uuid::parse_str(id)?; // Make sure it's a valid uuid
 
-	let mut rtx = dbenv.read_txn().expect("Failed to open read transaction");
-	let pets: Database<Str, Str> = dbenv.open_database(&mut rtx, Some("pets"))
-	    .or_else(|_x| Err(Error {status_code: 404, message: String::from("Pet not found!")}))?
+	let mut wtx = dbenv.write_txn().expect("Failed to open read transaction");
+	let pets: Database<Str, Str> = dbenv.create_database(&mut wtx, Some("pets"))
 	        .expect("Broken database when calling get_pet");
-	if let Ok(pet) = pets.get(&rtx, id) {
+	if let Ok(pet) = pets.get(&wtx, id) {
 		match pet {
-			Some(pet) => Ok(Json(wire_of_pet(serde_json::from_str(pet).unwrap()))),
-			None => Err(Error {status_code: 404, message: String::from("Invalid id")})
+			Some(pet) => {
+			    let p: Pet = serde_json::from_str(pet).unwrap();
+			    if !p.alive {
+			      eprintln!("Get on dead pet {}, deleting", id);
+			      pets.delete(&mut wtx, id).expect(&format!("Failed to delete {}", id));
+			      wtx.commit().expect("Failed to delete dead pet");;
+			    }
+			    Ok(Json(wire_of_pet(p)))
+			},
+			None => Err(Error {status_code: 404, message: format!("Invalid id: {}", id)})
 		}
 	} else {
 		Err(Error {status_code: 500, message: String::from("Error getting from db")})
@@ -115,12 +123,12 @@ fn update_pet<F>(env: &Env, id: &str, cb: F) -> Result<Pet, Error>
 
 async fn train_pet(Context(dbenv): Context<'_, Arc<Env>>, Path(id): Path<&str>) -> Result<Json<WirePet>, Error> {
 	let _u = Uuid::parse_str(id)?; // Make sure it's a valid uuid
-	update_pet(&(*dbenv), id, | p | { p.training = std::cmp::min(5, p.training + 1) }).map(|p| { Json(wire_of_pet(p))})
+	update_pet(&(*dbenv), id, | p | { p.training = max(1, min(5, p.training + 1)) }).map(|p| { Json(wire_of_pet(p))})
 }
 
 async fn feed_pet(Context(dbenv): Context<'_, Arc<Env>>, Path(id): Path<&str>) -> Result<Json<WirePet>, Error> {
 	let _u = Uuid::parse_str(id)?; // Make sure it's a valid uuid
-	update_pet(&(*dbenv), id, | p | { p.food = std::cmp::min(5, p.food + 1) }).map(|p| { Json(wire_of_pet(p))})
+	update_pet(&(*dbenv), id, | p | { p.food = max(1, min(5, p.food + 1)) }).map(|p| { Json(wire_of_pet(p))})
 }
 
 pub fn now_s() -> u64 {

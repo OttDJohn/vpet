@@ -6,12 +6,12 @@ use serde::{Serialize, Deserialize};
 
 use crate::now_s;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum PetType {
 	Squid
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Pet {
 	pub t: PetType,
 	pub born: u64,
@@ -37,9 +37,13 @@ impl Pet {
 		}
 	}
 
+        pub fn is_egg(&self) -> bool {
+		return now_s() - self.born < Duration::from_mins(1).as_secs();
+	}
+
 	pub fn tick(&mut self, rng: &mut impl Rng) {
 	        // Don't tick if we're still in an egg.
-		if now_s() - self.born < Duration::from_mins(1).as_secs() {
+		if self.is_egg() {
 		    return;
 		}
 		if rng.random_range(0..100) < (100 - self.metabolism) {
