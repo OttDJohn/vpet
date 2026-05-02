@@ -143,14 +143,14 @@ window.addEventListener("load", function() {
 	simTick();
 	pet.x = Math.random() * (document.getElementById("field").offsetWidth - 50); 
 	document.getElementById("softkey-left").onclick = async () => {
-	    if (p.alive && !p.egg) {
+	    if (pet.alive && !pet.egg) {
 		let n = await sendFeed();
 		update_overlap(await n.json(), pet);
 		drawStatus();
 	    }
 	};
 	document.getElementById("softkey-right").onclick = async () => {
-	    if (p.alive && !p.egg) {
+	    if (pet.alive && !pet.egg) {
 		let n = await sendTrain();
 		update_overlap(await n.json(), pet);
 		drawStatus();
